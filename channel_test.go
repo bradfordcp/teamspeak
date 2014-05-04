@@ -6,7 +6,8 @@ import (
 
 const validChannelPropertyString = "cid=1 pid=2 channel_order=3 channel_name=Sample\\sChannel\\sName total_clients=4 channel_needed_subscribe_power=5"
 const validChannelPropertyStringWithNull = "cid=1 pid channel_order=3 channel_name=Sample\\sChannel\\sName total_clients=4 channel_needed_subscribe_power=5"
-const invalidChannelPropertyString = "I'm not a channel, nice try!"
+const invalidChannelPropertyString = "invalid_property=foo"
+const newChannelPropertyString = "pid=2 channel_order=5 channel_name=Woot"
 
 func TestNewChannel(t *testing.T) {
 	// Test to see if a valid channel string is converted into a Channel struct
@@ -14,8 +15,12 @@ func TestNewChannel(t *testing.T) {
 	if err != nil {
 		t.Errorf("NewChannel(\"%v\"): Errored out with %v", validChannelPropertyString, err)
 	} else {
-		if validChannel.Cid != 1 || validChannel.Pid != 2 || validChannel.Name != "Sample\\sChannel\\sName" || validChannel.TotalClients != 4 || validChannel.NeededSubscribePower != 5 {
+		if validChannel.Cid != 1 || validChannel.Pid != 2 || validChannel.Name != "Sample Channel Name" || validChannel.TotalClients != 4 || validChannel.NeededSubscribePower != 5 {
 			t.Errorf("NewChannel(\"%v\"): Parsed version %v does not match source input", validChannelPropertyString, validChannel)
+		}
+
+		if validChannel.newRecord {
+			t.Errorf("NewChannel(\"%v\"): should not be marked as a new record", validChannelPropertyString)
 		}
 	}
 
@@ -24,7 +29,7 @@ func TestNewChannel(t *testing.T) {
 	if err != nil {
 		t.Errorf("NewChannel(\"%v\"): Errored out with %v", validChannelPropertyStringWithNull, err)
 	} else {
-		if validNullParamChannel.Cid != 1 || validNullParamChannel.Pid != 0 || validNullParamChannel.Name != "Sample\\sChannel\\sName" || validNullParamChannel.TotalClients != 4 || validNullParamChannel.NeededSubscribePower != 5 {
+		if validNullParamChannel.Cid != 1 || validNullParamChannel.Pid != 0 || validNullParamChannel.Name != "Sample Channel Name" || validNullParamChannel.TotalClients != 4 || validNullParamChannel.NeededSubscribePower != 5 {
 			t.Errorf("NewChannel(\"%v\"): Parsed version %v does not match source input", validChannelPropertyStringWithNull, validNullParamChannel)
 		}
 	}
@@ -33,6 +38,16 @@ func TestNewChannel(t *testing.T) {
 	invalidChannel, err := NewChannel(invalidChannelPropertyString)
 	if err == nil {
 		t.Errorf("NewChannel(\"%v\"): Should have thrown an error. Instead received %v", invalidChannelPropertyString, invalidChannel)
+	}
+
+	// Test to make sure channel without cid is marked as new
+	newChannel, err := NewChannel(newChannelPropertyString)
+	if err != nil {
+		t.Errorf("NewChannel(\"%v\"): Errored out with %v", newChannelPropertyString, err)
+	} else {
+		if !newChannel.newRecord {
+			t.Errorf("NewChannel(\"%v\"): should be marked as a new record", newChannelPropertyString)
+		}
 	}
 }
 

@@ -42,6 +42,10 @@ type Channel struct {
 	IconId                        int
 	FlagPrivate                   bool
 	SecondsEmpty                  int
+
+	// Tracking state for Save calls
+	newRecord  bool
+	infoLoaded bool
 }
 
 func NewChannel(channelStr string) (*Channel, error) {
@@ -49,11 +53,14 @@ func NewChannel(channelStr string) (*Channel, error) {
 	channel := &Channel{}
 
 	// Update the properties with the passed in data
-	channel.Deserialize(channelStr)
+	_, err := channel.Deserialize(channelStr)
+	if err != nil {
+		return channel, err
+	}
 
 	// Sanity check on the channel
 	if channel.Cid == 0 {
-		return channel, errors.New(fmt.Sprintf("Invalid channel, no cid present from %v", channelStr))
+		channel.newRecord = true
 	}
 
 	return channel, nil
@@ -90,7 +97,7 @@ func (channel *Channel) Deserialize(propertiesStr string) (*Channel, error) {
 				channel.Order = uint(order)
 
 			case "channel_name":
-				channel.Name = attribute[1]
+				channel.Name = Unescape(attribute[1])
 
 			case "total_clients":
 				totalClients, err := strconv.ParseUint(attribute[1], 10, 32)
@@ -107,13 +114,13 @@ func (channel *Channel) Deserialize(propertiesStr string) (*Channel, error) {
 				channel.NeededSubscribePower = uint(neededSubscribePower)
 
 			case "channel_topic":
-				channel.Topic = attribute[1]
+				channel.Topic = Unescape(attribute[1])
 
 			case "channel_description":
-				channel.Description = attribute[1]
+				channel.Description = Unescape(attribute[1])
 
 			case "channel_password":
-				channel.Password = attribute[1]
+				channel.Password = Unescape(attribute[1])
 
 			case "channel_codec":
 				codec, err := strconv.ParseUint(attribute[1], 10, 32)
@@ -186,7 +193,7 @@ func (channel *Channel) Deserialize(propertiesStr string) (*Channel, error) {
 				channel.CodecIsUnencrypted = bool(codecIsUnencrypted)
 
 			case "channel_security_salt":
-				channel.SecuritySalt = attribute[1]
+				channel.SecuritySalt = Unescape(attribute[1])
 
 			case "channel_delete_delay":
 				deleteDelay, err := strconv.ParseUint(attribute[1], 10, 32)
@@ -217,7 +224,7 @@ func (channel *Channel) Deserialize(propertiesStr string) (*Channel, error) {
 				channel.FlagMaxFamilyClientsInherited = bool(flagMaxFamilyClientsInherited)
 
 			case "channel_filepath":
-				channel.Filepath = attribute[1]
+				channel.Filepath = Unescape(attribute[1])
 
 			case "channel_needed_talk_power":
 				neededTalkPower, err := strconv.ParseUint(attribute[1], 10, 32)
@@ -234,7 +241,7 @@ func (channel *Channel) Deserialize(propertiesStr string) (*Channel, error) {
 				channel.ForcedSilence = bool(forcedSilence)
 
 			case "channel_name_phonetic":
-				channel.NamePhonetic = attribute[1]
+				channel.NamePhonetic = Unescape(attribute[1])
 
 			case "channel_icon_id":
 				iconId, err := strconv.ParseInt(attribute[1], 10, 32)
@@ -299,6 +306,9 @@ func (ts3 *Conn) ChannelInfo(channel *Channel) error {
 		if err != nil {
 			return err
 		}
+
+		// Set the flag telling us ChannelInfo was called on this channel
+		channel.infoLoaded = true
 	}
 
 	return nil
