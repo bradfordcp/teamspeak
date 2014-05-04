@@ -153,7 +153,7 @@ func (ts3 *Conn) Logout() error {
 
 // Selects the virtual server to act on
 func (ts3 *Conn) Use(serverId int) error {
-	_, err := ts3.SendCommand(fmt.Sprintf("use sid= %d", serverId))
+	_, err := ts3.SendCommand(fmt.Sprintf("use sid=%d", serverId))
 	if ts3Err, ok := err.(*Error); ok && ts3Err.Id == 0 {
 		return nil
 	}
