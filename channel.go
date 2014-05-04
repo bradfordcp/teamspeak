@@ -290,6 +290,7 @@ func (ts3 *Conn) ChannelList() ([]*Channel, error) {
 	return empty, err
 }
 
+// Pull additional channel info
 func (ts3 *Conn) ChannelInfo(channel *Channel) error {
 	response, err := ts3.SendCommand(fmt.Sprintf("channelinfo cid=%d", channel.Cid))
 	if ts3Err, ok := err.(*Error); ok && ts3Err.Id == 0 {

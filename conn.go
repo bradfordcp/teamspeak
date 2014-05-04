@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"net"
-	"strconv"
 	"strings"
 )
 
@@ -120,9 +119,31 @@ func (ts3 *Conn) ReadResponse() (string, error) {
 	return response, ts3Err
 }
 
+// Closes the ServerQuery connection to the TeamSpeak 3 Server instance.
+func (ts3 *Conn) Quit() error {
+	_, err := ts3.SendCommand("quit")
+	if ts3Err, ok := err.(*Error); ok && ts3Err.Id == 0 {
+		ts3.Close()
+
+		return nil
+	}
+
+	return err
+}
+
 // Authenticates with the username and password provided
 func (ts3 *Conn) Login(username, password string) error {
-	_, err := ts3.SendCommand("login " + username + " " + password)
+	_, err := ts3.SendCommand(fmt.Sprintf("login %v %v", username, password))
+	if ts3Err, ok := err.(*Error); ok && ts3Err.Id == 0 {
+		return nil
+	}
+
+	return err
+}
+
+// Logs out and deselects the active virtual server
+func (ts3 *Conn) Logout() error {
+	_, err := ts3.SendCommand("logout")
 	if ts3Err, ok := err.(*Error); ok && ts3Err.Id == 0 {
 		return nil
 	}
@@ -132,7 +153,7 @@ func (ts3 *Conn) Login(username, password string) error {
 
 // Selects the virtual server to act on
 func (ts3 *Conn) Use(serverId int) error {
-	_, err := ts3.SendCommand("use sid=" + strconv.Itoa(serverId))
+	_, err := ts3.SendCommand(fmt.Sprintf("use sid= %d", serverId))
 	if ts3Err, ok := err.(*Error); ok && ts3Err.Id == 0 {
 		return nil
 	}
