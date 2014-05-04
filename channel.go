@@ -9,39 +9,39 @@ import (
 
 type Channel struct {
 	// Retrieved in ChannelList call
-	Cid                         uint
-	Pid                         uint
-	ChannelOrder                uint
-	ChannelName                 string
-	TotalClients                uint
-	ChannelNeededSubscribePower uint
+	Cid                  uint
+	Pid                  uint
+	Order                uint
+	Name                 string
+	TotalClients         uint
+	NeededSubscribePower uint
 
 	// Retrieved in ChannelInfo call
-	ChannelTopic                         string
-	ChannelDescription                   string
-	ChannelPassword                      string
-	ChannelCodec                         uint
-	ChannelCodecQuality                  uint
-	ChannelMaxClients                    int
-	ChannelMaxFamilyClients              int
-	ChannelFlagPermanent                 bool
-	ChannelFlagSemiPermanent             bool
-	ChannelFlagDefault                   bool
-	ChannelFlagPassword                  bool
-	ChannelCodecLatencyFactor            uint
-	ChannelCodecIsUnencrypted            bool
-	ChannelSecuritySalt                  string
-	ChannelDeleteDelay                   uint
-	ChannelFlagMaxClientsUnlimited       bool
-	ChannelFlagMaxFamilyClientsUnlimited bool
-	ChannelFlagMaxFamilyClientsInherited bool
-	ChannelFilepath                      string
-	ChannelNeededTalkPower               uint
-	ChannelForcedSilence                 bool
-	ChannelNamePhonetic                  string
-	ChannelIconId                        int
-	ChannelFlagPrivate                   bool
-	SecondsEmpty                         int
+	Topic                         string
+	Description                   string
+	Password                      string
+	Codec                         uint
+	CodecQuality                  uint
+	MaxClients                    int
+	MaxFamilyClients              int
+	FlagPermanent                 bool
+	FlagSemiPermanent             bool
+	FlagDefault                   bool
+	FlagPassword                  bool
+	CodecLatencyFactor            uint
+	CodecIsUnencrypted            bool
+	SecuritySalt                  string
+	DeleteDelay                   uint
+	FlagMaxClientsUnlimited       bool
+	FlagMaxFamilyClientsUnlimited bool
+	FlagMaxFamilyClientsInherited bool
+	Filepath                      string
+	NeededTalkPower               uint
+	ForcedSilence                 bool
+	NamePhonetic                  string
+	IconId                        int
+	FlagPrivate                   bool
+	SecondsEmpty                  int
 }
 
 func NewChannel(channelStr string) (*Channel, error) {
@@ -83,14 +83,14 @@ func (channel *Channel) Deserialize(propertiesStr string) (*Channel, error) {
 				channel.Pid = uint(pid)
 
 			case "channel_order":
-				channelOrder, err := strconv.ParseUint(attribute[1], 10, 32)
+				order, err := strconv.ParseUint(attribute[1], 10, 32)
 				if err != nil {
 					return channel, err
 				}
-				channel.ChannelOrder = uint(channelOrder)
+				channel.Order = uint(order)
 
 			case "channel_name":
-				channel.ChannelName = attribute[1]
+				channel.Name = attribute[1]
 
 			case "total_clients":
 				totalClients, err := strconv.ParseUint(attribute[1], 10, 32)
@@ -100,155 +100,155 @@ func (channel *Channel) Deserialize(propertiesStr string) (*Channel, error) {
 				channel.TotalClients = uint(totalClients)
 
 			case "channel_needed_subscribe_power":
-				channelNeededSubscribePower, err := strconv.ParseUint(attribute[1], 10, 32)
+				neededSubscribePower, err := strconv.ParseUint(attribute[1], 10, 32)
 				if err != nil {
 					return channel, err
 				}
-				channel.ChannelNeededSubscribePower = uint(channelNeededSubscribePower)
+				channel.NeededSubscribePower = uint(neededSubscribePower)
 
 			case "channel_topic":
-				channel.ChannelTopic = attribute[1]
+				channel.Topic = attribute[1]
 
 			case "channel_description":
-				channel.ChannelDescription = attribute[1]
+				channel.Description = attribute[1]
 
 			case "channel_password":
-				channel.ChannelPassword = attribute[1]
+				channel.Password = attribute[1]
 
 			case "channel_codec":
-				channelCodec, err := strconv.ParseUint(attribute[1], 10, 32)
+				codec, err := strconv.ParseUint(attribute[1], 10, 32)
 				if err != nil {
 					return channel, err
 				}
-				channel.ChannelCodec = uint(channelCodec)
+				channel.Codec = uint(codec)
 
 			case "channel_codec_quality":
-				channelCodecQuality, err := strconv.ParseUint(attribute[1], 10, 32)
+				codecQuality, err := strconv.ParseUint(attribute[1], 10, 32)
 				if err != nil {
 					return channel, err
 				}
-				channel.ChannelCodecQuality = uint(channelCodecQuality)
+				channel.CodecQuality = uint(codecQuality)
 
 			case "channel_maxclients":
-				channelMaxClients, err := strconv.ParseInt(attribute[1], 10, 32)
+				maxClients, err := strconv.ParseInt(attribute[1], 10, 32)
 				if err != nil {
 					return channel, err
 				}
-				channel.ChannelMaxClients = int(channelMaxClients)
+				channel.MaxClients = int(maxClients)
 
 			case "channel_maxfamilyclients":
-				channelMaxFamilyClients, err := strconv.ParseInt(attribute[1], 10, 32)
+				maxFamilyClients, err := strconv.ParseInt(attribute[1], 10, 32)
 				if err != nil {
 					return channel, err
 				}
-				channel.ChannelMaxFamilyClients = int(channelMaxFamilyClients)
+				channel.MaxFamilyClients = int(maxFamilyClients)
 
 			case "channel_flag_permanent":
-				channelFlagPermanent, err := strconv.ParseBool(attribute[1])
+				flagPermanent, err := strconv.ParseBool(attribute[1])
 				if err != nil {
 					return channel, err
 				}
-				channel.ChannelFlagPermanent = bool(channelFlagPermanent)
+				channel.FlagPermanent = bool(flagPermanent)
 
 			case "channel_flag_semi_permanent":
-				channelFlagSemiPermanent, err := strconv.ParseBool(attribute[1])
+				flagSemiPermanent, err := strconv.ParseBool(attribute[1])
 				if err != nil {
 					return channel, err
 				}
-				channel.ChannelFlagSemiPermanent = bool(channelFlagSemiPermanent)
+				channel.FlagSemiPermanent = bool(flagSemiPermanent)
 
 			case "channel_flag_default":
-				channelFlagDefault, err := strconv.ParseBool(attribute[1])
+				flagDefault, err := strconv.ParseBool(attribute[1])
 				if err != nil {
 					return channel, err
 				}
-				channel.ChannelFlagDefault = bool(channelFlagDefault)
+				channel.FlagDefault = bool(flagDefault)
 
 			case "channel_flag_password":
-				channelFlagPassword, err := strconv.ParseBool(attribute[1])
+				flagPassword, err := strconv.ParseBool(attribute[1])
 				if err != nil {
 					return channel, err
 				}
-				channel.ChannelFlagPassword = bool(channelFlagPassword)
+				channel.FlagPassword = bool(flagPassword)
 
 			case "channel_codec_latency_factor":
-				channelCodecLatencyFactor, err := strconv.ParseUint(attribute[1], 10, 32)
+				codecLatencyFactor, err := strconv.ParseUint(attribute[1], 10, 32)
 				if err != nil {
 					return channel, err
 				}
-				channel.ChannelCodecLatencyFactor = uint(channelCodecLatencyFactor)
+				channel.CodecLatencyFactor = uint(codecLatencyFactor)
 
 			case "channel_codec_is_unencrypted":
-				channelCodecIsUnencrypted, err := strconv.ParseBool(attribute[1])
+				codecIsUnencrypted, err := strconv.ParseBool(attribute[1])
 				if err != nil {
 					return channel, err
 				}
-				channel.ChannelCodecIsUnencrypted = bool(channelCodecIsUnencrypted)
+				channel.CodecIsUnencrypted = bool(codecIsUnencrypted)
 
 			case "channel_security_salt":
-				channel.ChannelSecuritySalt = attribute[1]
+				channel.SecuritySalt = attribute[1]
 
 			case "channel_delete_delay":
-				channelDeleteDelay, err := strconv.ParseUint(attribute[1], 10, 32)
+				deleteDelay, err := strconv.ParseUint(attribute[1], 10, 32)
 				if err != nil {
 					return channel, err
 				}
-				channel.ChannelDeleteDelay = uint(channelDeleteDelay)
+				channel.DeleteDelay = uint(deleteDelay)
 
 			case "channel_flag_maxclients_unlimited":
-				channelFlagMaxClientsUnlimited, err := strconv.ParseBool(attribute[1])
+				flagMaxClientsUnlimited, err := strconv.ParseBool(attribute[1])
 				if err != nil {
 					return channel, err
 				}
-				channel.ChannelFlagMaxClientsUnlimited = bool(channelFlagMaxClientsUnlimited)
+				channel.FlagMaxClientsUnlimited = bool(flagMaxClientsUnlimited)
 
 			case "channel_flag_maxfamilyclients_unlimited":
-				channelFlagMaxFamilyClientsUnlimited, err := strconv.ParseBool(attribute[1])
+				flagMaxFamilyClientsUnlimited, err := strconv.ParseBool(attribute[1])
 				if err != nil {
 					return channel, err
 				}
-				channel.ChannelFlagMaxFamilyClientsUnlimited = bool(channelFlagMaxFamilyClientsUnlimited)
+				channel.FlagMaxFamilyClientsUnlimited = bool(flagMaxFamilyClientsUnlimited)
 
 			case "channel_flag_maxfamilyclients_inherited":
-				channelFlagMaxFamilyClientsInherited, err := strconv.ParseBool(attribute[1])
+				flagMaxFamilyClientsInherited, err := strconv.ParseBool(attribute[1])
 				if err != nil {
 					return channel, err
 				}
-				channel.ChannelFlagMaxFamilyClientsInherited = bool(channelFlagMaxFamilyClientsInherited)
+				channel.FlagMaxFamilyClientsInherited = bool(flagMaxFamilyClientsInherited)
 
 			case "channel_filepath":
-				channel.ChannelFilepath = attribute[1]
+				channel.Filepath = attribute[1]
 
 			case "channel_needed_talk_power":
-				channelNeededTalkPower, err := strconv.ParseUint(attribute[1], 10, 32)
+				neededTalkPower, err := strconv.ParseUint(attribute[1], 10, 32)
 				if err != nil {
 					return channel, err
 				}
-				channel.ChannelNeededTalkPower = uint(channelNeededTalkPower)
+				channel.NeededTalkPower = uint(neededTalkPower)
 
 			case "channel_forced_silence":
-				channelForcedSilence, err := strconv.ParseBool(attribute[1])
+				forcedSilence, err := strconv.ParseBool(attribute[1])
 				if err != nil {
 					return channel, err
 				}
-				channel.ChannelForcedSilence = bool(channelForcedSilence)
+				channel.ForcedSilence = bool(forcedSilence)
 
 			case "channel_name_phonetic":
-				channel.ChannelNamePhonetic = attribute[1]
+				channel.NamePhonetic = attribute[1]
 
 			case "channel_icon_id":
-				channelIconId, err := strconv.ParseInt(attribute[1], 10, 32)
+				iconId, err := strconv.ParseInt(attribute[1], 10, 32)
 				if err != nil {
 					return channel, err
 				}
-				channel.ChannelIconId = int(channelIconId)
+				channel.IconId = int(iconId)
 
 			case "channel_flag_private":
-				channelFlagPrivate, err := strconv.ParseBool(attribute[1])
+				flagPrivate, err := strconv.ParseBool(attribute[1])
 				if err != nil {
 					return channel, err
 				}
-				channel.ChannelFlagPrivate = bool(channelFlagPrivate)
+				channel.FlagPrivate = bool(flagPrivate)
 
 			case "seconds_empty":
 				secondsEmpty, err := strconv.ParseInt(attribute[1], 10, 32)

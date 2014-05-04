@@ -14,7 +14,7 @@ func TestNewChannel(t *testing.T) {
 	if err != nil {
 		t.Errorf("NewChannel(\"%v\"): Errored out with %v", validChannelPropertyString, err)
 	} else {
-		if validChannel.Cid != 1 || validChannel.Pid != 2 || validChannel.ChannelName != "Sample\\sChannel\\sName" || validChannel.TotalClients != 4 || validChannel.ChannelNeededSubscribePower != 5 {
+		if validChannel.Cid != 1 || validChannel.Pid != 2 || validChannel.Name != "Sample\\sChannel\\sName" || validChannel.TotalClients != 4 || validChannel.NeededSubscribePower != 5 {
 			t.Errorf("NewChannel(\"%v\"): Parsed version %v does not match source input", validChannelPropertyString, validChannel)
 		}
 	}
@@ -24,7 +24,7 @@ func TestNewChannel(t *testing.T) {
 	if err != nil {
 		t.Errorf("NewChannel(\"%v\"): Errored out with %v", validChannelPropertyStringWithNull, err)
 	} else {
-		if validNullParamChannel.Cid != 1 || validNullParamChannel.Pid != 0 || validNullParamChannel.ChannelName != "Sample\\sChannel\\sName" || validNullParamChannel.TotalClients != 4 || validNullParamChannel.ChannelNeededSubscribePower != 5 {
+		if validNullParamChannel.Cid != 1 || validNullParamChannel.Pid != 0 || validNullParamChannel.Name != "Sample\\sChannel\\sName" || validNullParamChannel.TotalClients != 4 || validNullParamChannel.NeededSubscribePower != 5 {
 			t.Errorf("NewChannel(\"%v\"): Parsed version %v does not match source input", validChannelPropertyStringWithNull, validNullParamChannel)
 		}
 	}
