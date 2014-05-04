@@ -1,6 +1,8 @@
 package teamspeak
 
 import (
+	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 )
@@ -15,8 +17,10 @@ type Channel struct {
 }
 
 func NewChannel(channelStr string) (*Channel, error) {
+	// Instantiate the channel we are going to return
 	channel := &Channel{}
 
+	// Split the tokens and fill in our channel
 	tokens := strings.Split(channelStr, " ")
 	for _, token := range tokens {
 		attribute := strings.Split(token, "=")
@@ -53,6 +57,9 @@ func NewChannel(channelStr string) (*Channel, error) {
 				return channel, err
 			}
 			channel.ChannelNeededSubscribePower = uint(channelNeededSubscribePower)
+
+		default:
+			return channel, errors.New(fmt.Sprintf("Error invalid parameter detected: %v", attribute[0]))
 		}
 	}
 
