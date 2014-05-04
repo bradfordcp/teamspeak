@@ -34,11 +34,14 @@ func NewError(errorStr string) (*Error, error) {
 				ts3Err.Id = uint(id)
 			case "msg":
 				ts3Err.Msg = attribute[1]
+			default:
+				// We don't recognize the error, emit an error about the attribute
+				return ts3Err, errors.New(fmt.Sprintf("Error could not parse param: %v", attribute[0]))
 			}
 		}
 	} else {
 		// First token was not error, emit an error about not parsing the error
-		return ts3Err, errors.New("Could not parse error from: " + errorStr)
+		return ts3Err, errors.New(fmt.Sprintf("Error could not parse error from: %v", errorStr))
 	}
 
 	return ts3Err, nil
