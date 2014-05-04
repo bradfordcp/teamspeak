@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net"
 	"strconv"
+	"strings"
 )
 
 type Conn struct {
@@ -56,7 +57,7 @@ func NewConn(connectionString string) (*Conn, error) {
 // Sends the command, which must already be encoded
 func (ts3 *Conn) SendCommand(command string) (string, error) {
 	if ts3.Debug {
-		fmt.Println("SEND:", command)
+		fmt.Println(fmt.Sprintf("SEND: %v", command))
 	}
 
 	// Send the command up with a newline added
@@ -92,12 +93,12 @@ func (ts3 *Conn) ReadResponse() (string, error) {
 			continueReadingLine = isPrefix
 		}
 
-		if "error" == string(lineBuffer[1:6]) {
+		if "error" == strings.TrimSpace(string(lineBuffer))[0:5] {
 			// Last line of response has been detected
 			continueReadingResponse = false
 			var err error
 
-			ts3Err, err = NewError(string(lineBuffer[1:]))
+			ts3Err, err = NewError(strings.TrimSpace(string(lineBuffer)))
 			if err != nil {
 				return "", err
 			}
@@ -107,11 +108,16 @@ func (ts3 *Conn) ReadResponse() (string, error) {
 		}
 	}
 
+	// Convert to a string and strip extra whitespace
+	response := string(responseBuffer)
+	response = strings.TrimSpace(response)
+
+	// Debug the resceived message
 	if ts3.Debug {
-		fmt.Println("RECV:", string(responseBuffer), ts3Err)
+		fmt.Println(fmt.Sprintf("RECV: %v %v", response, ts3Err))
 	}
 
-	return string(responseBuffer), ts3Err
+	return response, ts3Err
 }
 
 // Authenticates with the username and password provided

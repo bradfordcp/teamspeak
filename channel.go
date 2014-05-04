@@ -59,7 +59,7 @@ func NewChannel(channelStr string) (*Channel, error) {
 			channel.ChannelNeededSubscribePower = uint(channelNeededSubscribePower)
 
 		default:
-			return channel, errors.New(fmt.Sprintf("Error invalid parameter detected: %v", attribute[0]))
+			return channel, errors.New(fmt.Sprintf("Error invalid parameter detected (%v) from %v", attribute[0], channelStr))
 		}
 	}
 
