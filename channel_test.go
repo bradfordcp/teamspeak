@@ -1,6 +1,8 @@
 package teamspeak
 
 import (
+	"fmt"
+	"strings"
 	"testing"
 )
 
@@ -17,10 +19,6 @@ func TestNewChannel(t *testing.T) {
 	} else {
 		if validChannel.Cid != 1 || validChannel.Pid != 2 || validChannel.Name != "Sample Channel Name" || validChannel.TotalClients != 4 || validChannel.NeededSubscribePower != 5 {
 			t.Errorf("NewChannel(\"%v\"): Parsed version %v does not match source input", validChannelPropertyString, validChannel)
-		}
-
-		if validChannel.newRecord {
-			t.Errorf("NewChannel(\"%v\"): should not be marked as a new record", validChannelPropertyString)
 		}
 	}
 
@@ -41,37 +39,78 @@ func TestNewChannel(t *testing.T) {
 	}
 
 	// Test to make sure channel without cid is marked as new
-	newChannel, err := NewChannel(newChannelPropertyString)
+	_, err = NewChannel(newChannelPropertyString)
 	if err != nil {
 		t.Errorf("NewChannel(\"%v\"): Errored out with %v", newChannelPropertyString, err)
-	} else {
-		if !newChannel.newRecord {
-			t.Errorf("NewChannel(\"%v\"): should be marked as a new record", newChannelPropertyString)
-		}
 	}
 }
 
-func TestDeserialize(t *testing.T) {
-	const validChannelUpdateString = "cid=2 pid=3"
-	const invalidChannelUpdateString = "cid=4 invalid=true"
+const validChannelUpdateString = "cid=2 pid=3"
+const invalidChannelUpdateString = "cid=4 invalid=true"
 
+func TestDeserialize(t *testing.T) {
 	// Test to see if a valid channel string is converted into a Channel struct
 	validChannel, err := NewChannel(validChannelPropertyString)
 	if err != nil {
 		t.Errorf("NewChannel(\"%v\"): Errored out with %v", validChannelPropertyString, err)
 	}
 
-	// Test a valid update call
+	// Test a valid deserialize call
 	_, err = validChannel.Deserialize(validChannelUpdateString)
 
 	if err != nil {
 		t.Errorf("channel.Deserialize(\"%v\"): Errored out with %v", validChannelUpdateString, err)
 	}
 
-	// Test an invalid update call
+	// Test an invalid deserialize call
 	_, err = validChannel.Deserialize(invalidChannelUpdateString)
 
 	if err == nil {
 		t.Errorf("channel.Deserialize(\"%v\"): should have thrown an error", invalidChannelUpdateString, err)
 	}
+}
+
+func TestSerialize(t *testing.T) {
+	// Setup our test channel
+	channel := &Channel{}
+
+	// Cid should never be returned
+	channel.Cid = 1
+	propertyString, err := channel.Serialize()
+	if err != nil {
+		t.Errorf("channel.Serialize(%v): Errored out with %v", channel, err)
+	}
+
+	if strings.Index(propertyString, "cid=") != -1 {
+		t.Errorf("channel.Serialize(%v): Included cid in returned property string(%v)", channel, propertyString)
+	}
+
+	// Serialized channel should provide all the data from the channel
+	propertyString, err = channel.Serialize()
+	if err != nil {
+		t.Errorf("channel.Serialize(%v): Errored out with %v", channel, err)
+	}
+
+	// Pid
+	channel.Pid = 2
+	propertyString, err = channel.Serialize()
+	if strings.Index(propertyString, fmt.Sprintf("pid=%d", channel.Pid)) == -1 {
+		t.Errorf("channel.Serialize(%v): pid missing from returned property string \"%v\"", channel, propertyString)
+	}
+
+	// Order
+	channel.Order = 3
+	propertyString, err = channel.Serialize()
+	if strings.Index(propertyString, fmt.Sprintf("channel_order=%d", channel.Order)) == -1 {
+		t.Errorf("channel.Serialize(%v): channel_order missing from returned property string \"%v\"", channel, propertyString)
+	}
+
+	// Name
+	channel.Name = "foo bar"
+	propertyString, err = channel.Serialize()
+	if strings.Index(propertyString, fmt.Sprintf("channel_name=%v", Escape(channel.Name))) == -1 {
+		t.Errorf("channel.Serialize(%v): channel_name missing from returned property string \"%v\"", channel, propertyString)
+	}
+
+	// NeededSubscribePower
 }
