@@ -8,14 +8,14 @@ import (
 	"strings"
 )
 
-type Conn struct {
+type Connection struct {
 	conn  *net.TCPConn
 	rw    *bufio.ReadWriter
 	Debug bool
 }
 
 // Generates a new connection, dials out, and verifies connectivity
-func NewConn(connectionString string) (*Conn, error) {
+func NewConnection(connectionString string) (*Connection, error) {
 	// Resolve the address we are connecting to
 	tsAddr, err := net.ResolveTCPAddr("tcp", connectionString)
 	if err != nil {
@@ -23,7 +23,7 @@ func NewConn(connectionString string) (*Conn, error) {
 	}
 
 	// Set up the object to return
-	ts3 := &Conn{}
+	ts3 := &Connection{}
 
 	// Dial the remote address
 	ts3.conn, err = net.DialTCP("tcp", nil, tsAddr)
@@ -54,7 +54,7 @@ func NewConn(connectionString string) (*Conn, error) {
 }
 
 // Sends the command, which must already be encoded
-func (ts3 *Conn) SendCommand(command string) (string, error) {
+func (ts3 *Connection) SendCommand(command string) (string, error) {
 	if ts3.Debug {
 		fmt.Println(fmt.Sprintf("SEND: %v", command))
 	}
@@ -72,7 +72,7 @@ func (ts3 *Conn) SendCommand(command string) (string, error) {
 	return ts3.ReadResponse()
 }
 
-func (ts3 *Conn) ReadResponse() (string, error) {
+func (ts3 *Connection) ReadResponse() (string, error) {
 	// Generate the response data structure
 	responseBuffer := make([]byte, 0)
 	var ts3Err *Error
@@ -120,7 +120,7 @@ func (ts3 *Conn) ReadResponse() (string, error) {
 }
 
 // Closes the ServerQuery connection to the TeamSpeak 3 Server instance.
-func (ts3 *Conn) Quit() error {
+func (ts3 *Connection) Quit() error {
 	_, err := ts3.SendCommand("quit")
 	if ts3Err, ok := err.(*Error); ok && ts3Err.Id == 0 {
 		ts3.Close()
@@ -132,7 +132,7 @@ func (ts3 *Conn) Quit() error {
 }
 
 // Authenticates with the username and password provided
-func (ts3 *Conn) Login(username, password string) error {
+func (ts3 *Connection) Login(username, password string) error {
 	_, err := ts3.SendCommand(fmt.Sprintf("login %v %v", username, password))
 	if ts3Err, ok := err.(*Error); ok && ts3Err.Id == 0 {
 		return nil
@@ -142,7 +142,7 @@ func (ts3 *Conn) Login(username, password string) error {
 }
 
 // Logs out and deselects the active virtual server
-func (ts3 *Conn) Logout() error {
+func (ts3 *Connection) Logout() error {
 	_, err := ts3.SendCommand("logout")
 	if ts3Err, ok := err.(*Error); ok && ts3Err.Id == 0 {
 		return nil
@@ -152,7 +152,7 @@ func (ts3 *Conn) Logout() error {
 }
 
 // Selects the virtual server to act on
-func (ts3 *Conn) Use(serverId int) error {
+func (ts3 *Connection) Use(serverId int) error {
 	_, err := ts3.SendCommand(fmt.Sprintf("use sid=%d", serverId))
 	if ts3Err, ok := err.(*Error); ok && ts3Err.Id == 0 {
 		return nil
@@ -161,7 +161,7 @@ func (ts3 *Conn) Use(serverId int) error {
 	return err
 }
 
-// Closes the TCP Connection
-func (ts3 *Conn) Close() {
+// Closes the TCP Connectionection
+func (ts3 *Connection) Close() {
 	ts3.conn.Close()
 }
