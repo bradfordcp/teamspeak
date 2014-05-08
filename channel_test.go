@@ -1,8 +1,6 @@
 package teamspeak
 
 import (
-	"fmt"
-	"strings"
 	"testing"
 )
 
@@ -173,44 +171,48 @@ func TestDeserialize(t *testing.T) {
 func TestSerialize(t *testing.T) {
 	// Setup our test channel
 	channel := &Channel{}
-
-	// Cid should never be returned
 	channel.Cid = 1
-	propertyString, err := channel.Serialize()
+	channel.Name = "foo bar baz"
+	channel.FlagPermanent = true
+	channel.MaxClients = -1
+
+	// Test Uiont
+	propertyString, err := channel.Serialize("Cid")
 	if err != nil {
-		t.Errorf("channel.Serialize(%v): Errored out with %v", channel, err)
+		t.Errorf("channel.Serialize(\"Cid\"): Errored out with %v", err)
 	}
 
-	if strings.Index(propertyString, "cid=") != -1 {
-		t.Errorf("channel.Serialize(%v): Included cid in returned property string(%v)", channel, propertyString)
+	if propertyString != "cid=1" {
+		t.Errorf("channel.Serialize(\"Cid\"): Did not include cid in returned property string(%v)", propertyString)
 	}
 
-	// Serialized channel should provide all the data from the channel
-	propertyString, err = channel.Serialize()
+	// Test String
+	propertyString, err = channel.Serialize("Name")
 	if err != nil {
-		t.Errorf("channel.Serialize(%v): Errored out with %v", channel, err)
+		t.Errorf("channel.Serialize(\"Name\"): Errored out with %v", err)
 	}
 
-	// Pid
-	channel.Pid = 2
-	propertyString, err = channel.Serialize()
-	if strings.Index(propertyString, fmt.Sprintf("pid=%d", channel.Pid)) == -1 {
-		t.Errorf("channel.Serialize(%v): pid missing from returned property string \"%v\"", channel, propertyString)
+	if propertyString != "channel_name=foo\\sbar\\sbaz" {
+		t.Errorf("channel.Serialize(\"Name\"): Did not include channel_name in returned property string(%v)", propertyString)
 	}
 
-	// Order
-	channel.Order = 3
-	propertyString, err = channel.Serialize()
-	if strings.Index(propertyString, fmt.Sprintf("channel_order=%d", channel.Order)) == -1 {
-		t.Errorf("channel.Serialize(%v): channel_order missing from returned property string \"%v\"", channel, propertyString)
+	// Test bool
+	propertyString, err = channel.Serialize("FlagPermanent")
+	if err != nil {
+		t.Errorf("channel.Serialize(\"FlagPermanent\"): Errored out with %v", err)
 	}
 
-	// Name
-	channel.Name = "foo bar"
-	propertyString, err = channel.Serialize()
-	if strings.Index(propertyString, fmt.Sprintf("channel_name=%v", Escape(channel.Name))) == -1 {
-		t.Errorf("channel.Serialize(%v): channel_name missing from returned property string \"%v\"", channel, propertyString)
+	if propertyString != "channel_flag_permanent=1" {
+		t.Errorf("channel.Serialize(\"FlagPermanent\"): Did not include channel_flag_permanent in returned property string(%v)", propertyString)
 	}
 
-	// NeededSubscribePower
+	// Test int
+	propertyString, err = channel.Serialize("MaxClients")
+	if err != nil {
+		t.Errorf("channel.Serialize(\"MaxClients\"): Errored out with %v", err)
+	}
+
+	if propertyString != "channel_maxclients=-1" {
+		t.Errorf("channel.Serialize(\"MaxClients\"): Did not include channel_max_clients in returned property string(%v)", propertyString)
+	}
 }

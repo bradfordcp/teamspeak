@@ -60,7 +60,8 @@ func NewChannel(channelStr string) (*Channel, error) {
 
 // Update the properties of the channel with the attributes passed in
 func (channel *Channel) Deserialize(propertiesStr string) (*Channel, error) {
-	channelType := reflect.ValueOf(channel).Elem()
+	// Get a settable reflection object representing channel
+	reflected_channel := reflect.ValueOf(channel).Elem()
 
 	// Split the tokens and fill in our channel
 	tokens := strings.Split(propertiesStr, " ")
@@ -71,9 +72,11 @@ func (channel *Channel) Deserialize(propertiesStr string) (*Channel, error) {
 			fieldFound := false
 
 			// Loop through the fields on Channel and assign the field
-			for i := 0; i < channelType.NumField(); i++ {
-				field := channelType.Field(i)
-				fieldTag := channelType.Type().Field(i).Tag
+			for i := 0; i < reflected_channel.NumField(); i++ {
+				field := reflected_channel.Field(i)
+
+				// Grab meta information on the Channel's type field
+				fieldTag := reflected_channel.Type().Field(i).Tag
 
 				// See if the attribute matches the "sq" tag on the struct field
 				if attribute[0] == fieldTag.Get("sq") {
@@ -124,13 +127,56 @@ func (channel *Channel) Deserialize(propertiesStr string) (*Channel, error) {
 	return channel, nil
 }
 
-func (channel *Channel) Serialize() (string, error) {
-	properties := make([]string, 25)
+func (channel *Channel) Serialize(fieldsStr string) (string, error) {
+	// Get a settable reflection object representing channel
+	channelType := reflect.ValueOf(channel).Elem()
 
-	properties[0] = fmt.Sprintf("pid=%d", channel.Pid)
-	properties[1] = fmt.Sprintf("channel_order=%d", channel.Order)
-	properties[2] = fmt.Sprintf("channel_name=%v", Escape(channel.Name))
+	// Parse out the fields we need to serialize
+	fields := strings.Split(fieldsStr, ",")
+	var properties []string
 
+	if len(fields) > 0 && len(fieldsStr) > 0 {
+		// Allocate the slice
+		properties = make([]string, len(fields))
+
+		// Iterate over the fields to retrieve
+		for i, field_name := range fields {
+			field := channelType.FieldByName(field_name)
+
+			// Grab a copy of the field from the type (if it exists)
+			fieldType, found := channelType.Type().FieldByName(field_name)
+
+			// Should the field exist carry on and grab the value
+			if field.IsValid() && found {
+				switch field.Kind() {
+				case reflect.Uint:
+					properties[i] = fmt.Sprintf("%v=%d", fieldType.Tag.Get("sq"), field.Uint())
+
+				case reflect.String:
+					properties[i] = fmt.Sprintf("%v=%s", fieldType.Tag.Get("sq"), Escape(field.String()))
+
+				case reflect.Int:
+					properties[i] = fmt.Sprintf("%v=%d", fieldType.Tag.Get("sq"), field.Int())
+
+				case reflect.Bool:
+					if field.Bool() {
+						properties[i] = fmt.Sprintf("%v=1", fieldType.Tag.Get("sq"))
+					} else {
+						properties[i] = fmt.Sprintf("%v=0", fieldType.Tag.Get("sq"))
+					}
+
+				default:
+					return "", errors.New(fmt.Sprintf("Cannot handle valid parameter (%v) type %v not supported", field_name, field.Kind()))
+				}
+			} else {
+				return "", errors.New(fmt.Sprintf("Field %v not found on Channel", field_name))
+			}
+		}
+	} else {
+		return "", errors.New("No fields listed")
+	}
+
+	// Join all the properties together and return
 	return strings.Join(properties, " "), nil
 }
 
@@ -173,9 +219,9 @@ func (ts3 *Connection) ChannelInfo(channel *Channel) error {
 }
 
 // Saves the Channel, for now this will push up all stored attributes including ones that have not changed
-func (ts3 *Connection) ChannelEdit(channel *Channel) error {
+func (ts3 *Connection) ChannelEdit(channel *Channel, fields string) error {
 	// Serialize the channel's properties
-	propertyString, err := channel.Serialize()
+	propertyString, err := channel.Serialize(fields)
 	if err != nil {
 		return err
 	}
