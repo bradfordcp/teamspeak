@@ -1,6 +1,8 @@
 package teamspeak
 
 import (
+	"fmt"
+	"strings"
 	"testing"
 )
 
@@ -17,10 +19,6 @@ func TestNewChannel(t *testing.T) {
 	} else {
 		if validChannel.Cid != 1 || validChannel.Pid != 2 || validChannel.Name != "Sample Channel Name" || validChannel.TotalClients != 4 || validChannel.NeededSubscribePower != 5 {
 			t.Errorf("NewChannel(\"%v\"): Parsed version %v does not match source input", validChannelPropertyString, validChannel)
-		}
-
-		if validChannel.newRecord {
-			t.Errorf("NewChannel(\"%v\"): should not be marked as a new record", validChannelPropertyString)
 		}
 	}
 
@@ -41,37 +39,178 @@ func TestNewChannel(t *testing.T) {
 	}
 
 	// Test to make sure channel without cid is marked as new
-	newChannel, err := NewChannel(newChannelPropertyString)
+	_, err = NewChannel(newChannelPropertyString)
 	if err != nil {
 		t.Errorf("NewChannel(\"%v\"): Errored out with %v", newChannelPropertyString, err)
-	} else {
-		if !newChannel.newRecord {
-			t.Errorf("NewChannel(\"%v\"): should be marked as a new record", newChannelPropertyString)
-		}
 	}
 }
 
-func TestDeserialize(t *testing.T) {
-	const validChannelUpdateString = "cid=2 pid=3"
-	const invalidChannelUpdateString = "cid=4 invalid=true"
+const validChannelUpdateString = "cid=2 pid=3"
+const invalidChannelUpdateString = "cid=4 invalid=true"
+const validChannelInfoString = "pid=2 channel_name=Foo\\sBar\\sBaz channel_topic channel_description=Multi-line\\nDescription channel_password=apassword channel_codec=3 channel_codec_quality=4 channel_maxclients=-1 channel_maxfamilyclients=-1 channel_order=5 channel_flag_permanent=1 channel_flag_semi_permanent=0 channel_flag_default=0 channel_flag_password=0 channel_codec_latency_factor=1 channel_codec_is_unencrypted=1 channel_security_salt channel_delete_delay=0 channel_flag_maxclients_unlimited=1 channel_flag_maxfamilyclients_unlimited=0 channel_flag_maxfamilyclients_inherited=1 channel_filepath=files\\/virtualserver_1\\/channel_1 channel_needed_talk_power=0 channel_forced_silence=0 channel_name_phonetic channel_icon_id=4 channel_flag_private=0 seconds_empty=5000"
 
+func TestDeserialize(t *testing.T) {
 	// Test to see if a valid channel string is converted into a Channel struct
 	validChannel, err := NewChannel(validChannelPropertyString)
 	if err != nil {
 		t.Errorf("NewChannel(\"%v\"): Errored out with %v", validChannelPropertyString, err)
 	}
 
-	// Test a valid update call
+	// Test a valid deserialize call
 	_, err = validChannel.Deserialize(validChannelUpdateString)
 
 	if err != nil {
 		t.Errorf("channel.Deserialize(\"%v\"): Errored out with %v", validChannelUpdateString, err)
+	} else {
+		// Validate the updated values
+		if validChannel.Cid != 2 {
+			t.Errorf("channel.Deserialize(\"%v\"): Did not update Cid value", validChannelUpdateString)
+		}
+		if validChannel.Pid != 3 {
+			t.Errorf("channel.Deserialize(\"%v\"): Did not update Pid value", validChannelUpdateString)
+		}
 	}
 
-	// Test an invalid update call
+	// Test an invalid deserialize call
 	_, err = validChannel.Deserialize(invalidChannelUpdateString)
 
 	if err == nil {
 		t.Errorf("channel.Deserialize(\"%v\"): should have thrown an error", invalidChannelUpdateString, err)
 	}
+
+	// Test a larger ChannelInfo Deserialization
+	_, err = validChannel.Deserialize(validChannelInfoString)
+	if err != nil {
+		t.Errorf("channel.Deserialize(\"%v\"): Errored out with %v", validChannelInfoString, err)
+	} else {
+		if validChannel.Pid != 2 {
+			t.Errorf("channel.Deserialize(\"%v\"): Did not update Pid value", validChannelInfoString)
+		}
+		if validChannel.Name != "Foo Bar Baz" {
+			t.Errorf("channel.Deserialize(\"%v\"): Did not update Name value", validChannelInfoString)
+		}
+		if validChannel.Topic != "" {
+			t.Errorf("channel.Deserialize(\"%v\"): Updated Topic value, when it should not have", validChannelInfoString)
+		}
+		if validChannel.Description != "Multi-line\nDescription" {
+			t.Errorf("channel.Deserialize(\"%v\"): Did not update Description value", validChannelInfoString)
+		}
+		if validChannel.Password != "apassword" {
+			t.Errorf("channel.Deserialize(\"%v\"): Did not update Password value", validChannelInfoString)
+		}
+		if validChannel.Codec != 3 {
+			t.Errorf("channel.Deserialize(\"%v\"): Did not update Codec value", validChannelInfoString)
+		}
+		if validChannel.CodecQuality != 4 {
+			t.Errorf("channel.Deserialize(\"%v\"): Did not update Codec value", validChannelInfoString)
+		}
+		if validChannel.MaxClients != -1 {
+			t.Errorf("channel.Deserialize(\"%v\"): Did not update MaxClients value", validChannelInfoString)
+		}
+		if validChannel.MaxFamilyClients != -1 {
+			t.Errorf("channel.Deserialize(\"%v\"): Did not update MaxFamilyClients value", validChannelInfoString)
+		}
+		if validChannel.Order != 5 {
+			t.Errorf("channel.Deserialize(\"%v\"): Did not update Order value", validChannelInfoString)
+		}
+		if validChannel.FlagPermanent != true {
+			t.Errorf("channel.Deserialize(\"%v\"): Did not update FlagPermanent value", validChannelInfoString)
+		}
+		if validChannel.FlagSemiPermanent != false {
+			t.Errorf("channel.Deserialize(\"%v\"): Did not update FlagSemiPermanent value", validChannelInfoString)
+		}
+		if validChannel.FlagDefault != false {
+			t.Errorf("channel.Deserialize(\"%v\"): Did not update FlagDefault value", validChannelInfoString)
+		}
+		if validChannel.FlagPassword != false {
+			t.Errorf("channel.Deserialize(\"%v\"): Did not update FlagPassword value", validChannelInfoString)
+		}
+		if validChannel.CodecLatencyFactor != 1 {
+			t.Errorf("channel.Deserialize(\"%v\"): Did not update CodecLatencyFactor value", validChannelInfoString)
+		}
+		if validChannel.CodecIsUnencrypted != true {
+			t.Errorf("channel.Deserialize(\"%v\"): Did not update CodecIsUnencrypted value", validChannelInfoString)
+		}
+		if validChannel.SecuritySalt != "" {
+			t.Errorf("channel.Deserialize(\"%v\"): Updated SecuritySalt value, when it should not have", validChannelInfoString)
+		}
+		if validChannel.DeleteDelay != 0 {
+			t.Errorf("channel.Deserialize(\"%v\"): Did not update DeleteDelay value", validChannelInfoString)
+		}
+		if validChannel.FlagMaxClientsUnlimited != true {
+			t.Errorf("channel.Deserialize(\"%v\"): Did not update FlagMaxClientsUnlimited value", validChannelInfoString)
+		}
+		if validChannel.FlagMaxFamilyClientsUnlimited != false {
+			t.Errorf("channel.Deserialize(\"%v\"): Did not update FlagMaxFamilyClientsUnlimited value", validChannelInfoString)
+		}
+		if validChannel.FlagMaxFamilyClientsInherited != true {
+			t.Errorf("channel.Deserialize(\"%v\"): Did not update FlagMaxFamilyClientsInherited value", validChannelInfoString)
+		}
+		if validChannel.Filepath != "files/virtualserver_1/channel_1" {
+			t.Errorf("channel.Deserialize(\"%v\"): Did not update FilePath value", validChannelInfoString)
+		}
+		if validChannel.NeededTalkPower != 0 {
+			t.Errorf("channel.Deserialize(\"%v\"): Did not update NeededTalkPower value", validChannelInfoString)
+		}
+		if validChannel.ForcedSilence != false {
+			t.Errorf("channel.Deserialize(\"%v\"): Did not update ForcedSilence value", validChannelInfoString)
+		}
+		if validChannel.NamePhonetic != "" {
+			t.Errorf("channel.Deserialize(\"%v\"): Updated NamePhonetic value, when it should not have", validChannelInfoString)
+		}
+		if validChannel.IconId != 4 {
+			t.Errorf("channel.Deserialize(\"%v\"): Did not update IconId value", validChannelInfoString)
+		}
+		if validChannel.FlagPrivate != false {
+			t.Errorf("channel.Deserialize(\"%v\"): Did not update FlagPrivate value", validChannelInfoString)
+		}
+		if validChannel.SecondsEmpty != 5000 {
+			t.Errorf("channel.Deserialize(\"%v\"): Did not update SecondsEmpty value", validChannelInfoString)
+		}
+	}
+}
+
+func TestSerialize(t *testing.T) {
+	// Setup our test channel
+	channel := &Channel{}
+
+	// Cid should never be returned
+	channel.Cid = 1
+	propertyString, err := channel.Serialize()
+	if err != nil {
+		t.Errorf("channel.Serialize(%v): Errored out with %v", channel, err)
+	}
+
+	if strings.Index(propertyString, "cid=") != -1 {
+		t.Errorf("channel.Serialize(%v): Included cid in returned property string(%v)", channel, propertyString)
+	}
+
+	// Serialized channel should provide all the data from the channel
+	propertyString, err = channel.Serialize()
+	if err != nil {
+		t.Errorf("channel.Serialize(%v): Errored out with %v", channel, err)
+	}
+
+	// Pid
+	channel.Pid = 2
+	propertyString, err = channel.Serialize()
+	if strings.Index(propertyString, fmt.Sprintf("pid=%d", channel.Pid)) == -1 {
+		t.Errorf("channel.Serialize(%v): pid missing from returned property string \"%v\"", channel, propertyString)
+	}
+
+	// Order
+	channel.Order = 3
+	propertyString, err = channel.Serialize()
+	if strings.Index(propertyString, fmt.Sprintf("channel_order=%d", channel.Order)) == -1 {
+		t.Errorf("channel.Serialize(%v): channel_order missing from returned property string \"%v\"", channel, propertyString)
+	}
+
+	// Name
+	channel.Name = "foo bar"
+	propertyString, err = channel.Serialize()
+	if strings.Index(propertyString, fmt.Sprintf("channel_name=%v", Escape(channel.Name))) == -1 {
+		t.Errorf("channel.Serialize(%v): channel_name missing from returned property string \"%v\"", channel, propertyString)
+	}
+
+	// NeededSubscribePower
 }
